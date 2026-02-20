@@ -5,6 +5,7 @@ import { useWindowSize } from "react-use"
 import { forwardRef, useImperativeHandle } from "react"
 import { OverlayScrollbar } from "../common/overlay-scrollbar"
 import { safeParseString } from "~/utils"
+import { AiSummaryButton } from "./ai-summary"
 
 export interface ItemsProps extends React.HTMLAttributes<HTMLDivElement> {
   id: SourceID
@@ -163,7 +164,7 @@ function NewsCard({ id, setHandleRef }: NewsCardProps) {
         defer
       >
         <div className={$("transition-opacity-500", isFetching && "op-20")}>
-          {!!data?.items?.length && (sources[id].type === "hottest" ? <NewsListHot items={data.items} /> : <NewsListTimeLine items={data.items} />)}
+          {!!data?.items?.length && (sources[id].type === "hottest" ? <NewsListHot items={data.items} sourceId={id} /> : <NewsListTimeLine items={data.items} sourceId={id} />)}
         </div>
       </OverlayScrollbar>
     </>
@@ -189,7 +190,7 @@ function DiffNumber({ diff }: { diff: number }) {
 
   return (
     <AnimatePresence>
-      { shown && (
+      {shown && (
         <motion.span
           initial={{ opacity: 0, y: -15 }}
           animate={{ opacity: 0.5, y: -7 }}
@@ -226,41 +227,45 @@ function NewsUpdatedTime({ date }: { date: string | number }) {
   const relativeTime = useRelativeTime(date)
   return <>{relativeTime}</>
 }
-function NewsListHot({ items }: { items: NewsItem[] }) {
+function NewsListHot({ items, sourceId }: { items: NewsItem[], sourceId: SourceID }) {
   const { width } = useWindowSize()
+  const isWallstreetcn = sourceId.startsWith("wallstreetcn")
   return (
     <ol className="flex flex-col gap-2">
       {items?.map((item, i) => (
-        <a
-          href={width < 768 ? item.mobileUrl || item.url : item.url}
-          target="_blank"
-          key={item.id}
-          title={item.extra?.hover}
-          className={$(
-            "flex gap-2 items-center items-stretch relative cursor-pointer [&_*]:cursor-pointer transition-all",
-            "hover:bg-neutral-400/10 rounded-md pr-1 visited:(text-neutral-400)",
-          )}
-        >
-          <span className={$("bg-neutral-400/10 min-w-6 flex justify-center items-center rounded-md text-sm")}>
-            {i + 1}
-          </span>
-          {!!item.extra?.diff && <DiffNumber diff={item.extra.diff} />}
-          <span className="self-start line-height-none">
-            <span className="mr-2 text-base">
-              {item.title}
+        <div key={item.id} className="flex flex-col">
+          <a
+            href={width < 768 ? item.mobileUrl || item.url : item.url}
+            target="_blank"
+            title={item.extra?.hover}
+            className={$(
+              "flex gap-2 items-center items-stretch relative cursor-pointer [&_*]:cursor-pointer transition-all",
+              "hover:bg-neutral-400/10 rounded-md pr-1 visited:(text-neutral-400)",
+            )}
+          >
+            <span className={$("bg-neutral-400/10 min-w-6 flex justify-center items-center rounded-md text-sm")}>
+              {i + 1}
             </span>
-            <span className="text-xs text-neutral-400/80 truncate align-middle">
-              <ExtraInfo item={item} />
+            {!!item.extra?.diff && <DiffNumber diff={item.extra.diff} />}
+            <span className="self-start line-height-none">
+              <span className="mr-2 text-base">
+                {item.title}
+              </span>
+              {isWallstreetcn && <AiSummaryButton item={item} />}
+              <span className="text-xs text-neutral-400/80 truncate align-middle">
+                <ExtraInfo item={item} />
+              </span>
             </span>
-          </span>
-        </a>
+          </a>
+        </div>
       ))}
     </ol>
   )
 }
 
-function NewsListTimeLine({ items }: { items: NewsItem[] }) {
+function NewsListTimeLine({ items, sourceId }: { items: NewsItem[], sourceId: SourceID }) {
   const { width } = useWindowSize()
+  const isWallstreetcn = sourceId.startsWith("wallstreetcn")
   return (
     <ol className="border-s border-neutral-400/50 flex flex-col ml-1">
       {items?.map(item => (
@@ -274,18 +279,21 @@ function NewsListTimeLine({ items }: { items: NewsItem[] }) {
               <ExtraInfo item={item} />
             </span>
           </span>
-          <a
-            className={$(
-              "ml-2 px-1 hover:bg-neutral-400/10 rounded-md visited:(text-neutral-400/80)",
-              "cursor-pointer [&_*]:cursor-pointer transition-all",
-            )}
-            href={width < 768 ? item.mobileUrl || item.url : item.url}
-            title={item.extra?.hover}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {item.title}
-          </a>
+          <div className="ml-2 px-1">
+            <a
+              className={$(
+                "hover:bg-neutral-400/10 rounded-md visited:(text-neutral-400/80)",
+                "cursor-pointer [&_*]:cursor-pointer transition-all",
+              )}
+              href={width < 768 ? item.mobileUrl || item.url : item.url}
+              title={item.extra?.hover}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {item.title}
+            </a>
+            {isWallstreetcn && <AiSummaryButton item={item} />}
+          </div>
         </li>
       ))}
     </ol>
