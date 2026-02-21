@@ -101,12 +101,11 @@ export default defineEventHandler(async (event) => {
             return { success: false, message: "No articles found" }
         }
 
-        // 2. Generate summaries
-        const summaries: { title: string, url: string, summary: string }[] = []
-        for (const article of articles) {
+        // 2. Generate summaries in parallel to save time
+        const summaries = await Promise.all(articles.map(async (article) => {
             const summary = await generateSummary(article.title)
-            summaries.push({ ...article, summary })
-        }
+            return { ...article, summary }
+        }))
 
         // 3. Build Telegram message
         const now = new Date()
