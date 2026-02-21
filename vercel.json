@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/tg-push",
+      "schedule": "0 1 * * *"
+    }
+  ]
+}
