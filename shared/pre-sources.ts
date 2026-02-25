@@ -258,13 +258,7 @@ export const originSources = {
     type: "hottest",
     home: "https://news.ycombinator.com/",
   },
-  "producthunt": {
-    name: "Product Hunt",
-    color: "red",
-    column: "tech",
-    type: "hottest",
-    home: "https://www.producthunt.com/",
-  },
+
   "github": {
     name: "Github",
     color: "gray",
@@ -451,6 +445,8 @@ export const originSources = {
     title: "网络安全",
     color: "green",
     type: "hottest",
+    // vercel serverless function timeout
+    disable: "vercel",
     home: "https://www.freebuf.com/",
   },
 
@@ -530,6 +526,8 @@ export function genSources() {
   return typeSafeObjectFromEntries(
     _.filter(([_, v]) => {
       if (v.disable === "cf" && process.env.CF_PAGES) {
+        return false
+      } else if (v.disable === "vercel" && process.env.VERCEL) {
         return false
       } else {
         return v.disable !== true

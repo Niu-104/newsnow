@@ -24,7 +24,7 @@ interface WscNewsRes {
     }
 }
 
-async function fetchNews(): Promise<{ title: string, url: string }[]> {
+async function fetchNews(): Promise<{ title: string, url: string, content: string }[]> {
     const apiUrl = "https://api-one.wallstcn.com/apiv1/content/information-flow?channel=global-channel&accept=article&limit=15"
     const res = await fetch(apiUrl, {
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
@@ -37,10 +37,11 @@ async function fetchNews(): Promise<{ title: string, url: string }[]> {
         .map(({ resource: h }) => ({
             title: h.title || h.content_short,
             url: h.uri,
+            content: h.content_text || h.content_short || "",
         }))
 }
 
-async function generateSummary(title: string): Promise<string> {
+async function generateSummary(title: string, content: string): Promise<string> {
     try {
         const res = await fetch(`${AI_BASE_URL}/chat/completions`, {
             method: "POST",
@@ -51,10 +52,10 @@ async function generateSummary(title: string): Promise<string> {
             body: JSON.stringify({
                 model: AI_MODEL,
                 messages: [
-                    { role: "system", content: "你是一个新闻摘要助手。根据新闻标题，用1-2句简洁中文推测并概括核心内容。只陈述事实。" },
-                    { role: "user", content: `新闻标题：${title}` },
+                    { role: "system", content: "你是一个新闻摘要助手。根据新闻标题和正文内容，用2-3句简洁中文概括文章核心内容。只陈述事实，不要添加评论。" },
+                    { role: "user", content: `新闻标题：${title}\n\n正文内容：${content.slice(0, 1500)}` },
                 ],
-                max_tokens: 150,
+                max_tokens: 200,
                 temperature: 0.3,
             }),
         })
@@ -103,7 +104,7 @@ export default defineEventHandler(async (event) => {
 
         // 2. Generate summaries in parallel to save time
         const summaries = await Promise.all(articles.map(async (article) => {
-            const summary = await generateSummary(article.title)
+            const summary = await generateSummary(article.title, article.content)
             return { ...article, summary }
         }))
 

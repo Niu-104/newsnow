@@ -322,14 +322,6 @@
     "color": "orange",
     "interval": 600000
   },
-  "producthunt": {
-    "name": "Product Hunt",
-    "type": "hottest",
-    "column": "tech",
-    "home": "https://www.producthunt.com/",
-    "color": "red",
-    "interval": 600000
-  },
   "github": {
     "redirect": "github-trending-today",
     "name": "Github",
@@ -521,6 +513,7 @@
     "title": "网络安全",
     "name": "Freebuf",
     "type": "hottest",
+    "disable": "vercel",
     "column": "china",
     "home": "https://www.freebuf.com/",
     "color": "green",
